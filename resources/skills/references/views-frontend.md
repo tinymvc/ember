@@ -60,16 +60,17 @@ Blocks use their corresponding closing directive unless listed otherwise. This i
 | --- | --- |
 | Conditions | `@if`, `@elseif`, `@else`, `@endif`; `@unless`, `@isset`, `@empty` with expressions and matching `@end...`; `@env('local')` / `@endenv`, `@production` / `@endproduction` |
 | Switch | `@switch($value)`, `@case($value)`, `@break`, `@default`, `@endswitch` |
-| Loops | `@foreach`, `@forelse` (`@empty`, `@endforelse`), `@for`, `@while` and matching `@end...`; `@break`, `@continue`, and conditional `@break($condition)`, `@continue($condition)` |
-| Gate | `@can('ability', $model)`, `@cannot(...)`, `@elsecan(...)`, `@elsecannot(...)`, matching closing directives; `@authorize(...)` runs authorization |
+| Loops | `@foreach`, `@forelse` (`@empty`, `@endforelse`), `@for`, `@while` and matching `@end...`; native `$loop` variable in `@foreach` and `@forelse`; `@break`, `@continue`, and conditional `@break($condition)`, `@continue($condition)` |
+| Gate | `@can('ability', $model)`, `@cannot(...)`, `@canany(['edit', 'delete'], $model)`, `@elsecan(...)`, `@elsecannot(...)`, `@elsecanany(...)`, matching closing directives (`@endcan`, `@endcannot`, `@endcanany`); `@authorize(...)` runs authorization |
 | Auth | `@auth`, `@guest`, `@elseauth`, `@elseguest`, optional guard (`@auth('admin')`), `@endauth`, `@endguest` |
 | Session | `@session('key') ... @endsession` checks `session()->has()`, exposing `$value = session()->get('key')` |
 | Errors | `@error('field')` first `$message`, `@errors('field')` each `$message`, `@enderror`, `@enderrors`; `@old('field', $default)` escapes old input |
 | Components | `@props(['name', 'type' => 'text'])` |
-| Stacks | `@stack('scripts', 'default')`, `@push('scripts') ... @endpush`, `@prepend('scripts') ... @endprepend`, `@pushIf($condition, 'scripts') ... @endpushIf`, `@pushOnce('scripts') ... @endpushOnce`, `@prependOnce('scripts') ... @endprependOnce`, `@once ... @endonce` |
+| Stacks | `@stack('scripts', 'default')`, `@push('scripts') ... @endpush`, `@prepend('scripts') ... @endprepend`, `@pushIf($condition, 'scripts') ... @endpushIf`, `@prependIf($condition, 'scripts') ... @endprependIf`, `@pushOnce('scripts') ... @endpushOnce`, `@prependOnce('scripts') ... @endprependOnce`, `@once ... @endonce` |
 | Layout | `@extends('layouts.app')`, `@section('name') ... @endsection`, inline `@section('name', 'Value')`, `@yield('name', 'Default')` |
 | Section helpers | `@stop` ends capture; `@show` ends/yields; `@hasSection('name')` / `@sectionMissing('name')` with matching `@end...` |
-| Includes | `@include('view', $data)`, `@includeIf('view', $data)`, `@includeWhen($condition, 'view', $data)`, `@includeUnless($condition, 'view', $data)`, `@includeFirst(['view1', 'view2'], $data)` |
+| Includes | `@include('view', $data)`, `@includeIf('view', $data)`, `@includeWhen($condition, 'view', $data)`, `@includeUnless($condition, 'view', $data)`, `@includeFirst(['view1', 'view2'], $data)`, `@each('view', $items, 'item', 'empty-view')` |
+| Imports & DI | `@use('App\Models\Post', 'Article')`, `@inject('metrics', 'App\Services\MetricsService')` |
 | Forms | `@csrf`, `@method('PUT')`, `@checked($bool)`, `@disabled($bool)`, `@selected($bool)`, `@readonly($bool)`, `@required($bool)` |
 | Attributes | `@class(['btn', 'active' => $active])`, `@style(['color: red' => $error])`, `@attributes($array)` |
 | Assets/data | `@vite('app.js')` or `@vite`, `@json($data)`, `@js($data)`, `@share(['key' => $value])` |
@@ -137,9 +138,7 @@ Stack entries and once markers are scoped to one render, shared by its includes,
 
 | Unsupported | Use instead |
 | --- | --- |
-| `$loop` | Explicit index/key or controller-prepared state (`$index => $item`) |
 | Class components / `<x-dynamic-component>` | Anonymous templates, explicit component choice |
-| `@inject`, `@each` | Controller-provided data/helpers; `@foreach` or `@forelse` |
 
 Native `@forelse` works with arrays, collections, and any iterable:
 

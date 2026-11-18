@@ -1,7 +1,7 @@
 # Operations and release verification
 
 > **Read when:** diagnosing environment failures, preparing a release, or operating workers.
-> **Related:** [Upgrades](upgrades.md) · [Foundation](foundation.md) · [Workflow and testing](workflow-testing.md)
+> **Related:** [Foundation](foundation.md) · [Workflow and testing](workflow-testing.md)
 > Use the target deployment procedure; loading this reference does not authorize production mutations.
 
 Contents:

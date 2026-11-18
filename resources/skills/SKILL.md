@@ -65,8 +65,8 @@ Read the selected response/adapter reference before implementing. Keep domain se
 
 **Blade** uses native helpers and anonymous components only. Never assume Laravel-only features:
 - No `\Spark\Facades\*` in views; use helpers (`user()`, `auth()`, `session()`, `route()`, `old()`, `errors()`, `config()`, `now()`).
-- No `$loop` variable (use `$index => $item`). Native `@forelse` ... `@empty` ... `@endforelse`, `@foreach`, and conditional `@break($cond)` / `@continue($cond)` are supported.
-- Native stacks (`@stack`, `@push`, `@prepend`, `@pushIf`, `@once`) and named component slots (`<x-slot:name>`, `<x-slot name="...">`) are supported. No `@inject`, or class components. Components are anonymous templates in `resources/views/components/`.
+- Native `$loop` variable in `@foreach` and `@forelse` (`$loop->index`, `$loop->iteration`, `$loop->first`, `$loop->last`, `$loop->remaining`, `$loop->count`, `$loop->even`, `$loop->odd`, `$loop->depth`, `$loop->parent`). Native `@forelse` ... `@empty` ... `@endforelse`, `@foreach`, and conditional `@break($cond)` / `@continue($cond)` are supported.
+- Native stacks (`@stack`, `@push`, `@prepend`, `@pushIf`, `@prependIf`, `@pushOnce`, `@prependOnce`, `@once`), `@inject`, `@each`, and named component slots (`<x-slot:name>`, `<x-slot name="...">`) are supported. No class components. Components are anonymous templates in `resources/views/components/`.
 - On `<x-...>` tags, use `::disabled` or `x-bind:disabled` for Alpine bindings.
 - Full directive list, escaping, and component syntax: [views and frontend](references/views-frontend.md).
 
