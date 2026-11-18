@@ -1,0 +1,55 @@
+<tinymvc-ember-guidelines>
+# TinyMVC Application Guidelines
+
+This repository contains a **TinyMVC / Spark** application. It uses TinyMVC's native architecture, Spark CLI (`php spark`), and the `Spark\` namespace.
+
+## Application & Stack Context
+
+- **Framework**: TinyMVC Spark (`tinymvc/tinycore` {{tinycore_version}})
+- **PHP Version**: {{php_version}} (required >= 8.2)
+- **Database**: {{db_driver}} ({{db_details}})
+- **Cache Store**: {{cache_driver}}
+- **Queue Driver**: {{queue_driver}}
+- **Session Driver**: {{session_driver}}
+- **Frontend Stack**: {{frontend_stack}}
+- **Test Runner**: `php test` (`Tests\TestCase`)
+
+## Common Development Commands
+
+| Task | Command |
+| --- | --- |
+| Start Dev Server | `php spark serve` |
+| Run Migrations | `php spark migrate` (or `php spark migrate:fresh --seed`) |
+| Rollback Migration | `php spark migrate:rollback` |
+| Clear All Caches | `php spark cache:clear && php spark view:clear && php spark config:clear` |
+| Run Tests | `php test` (or `php test --filter=TestClassName`) |
+| Build Assets | `npm run build` (or `npm run dev`) |
+| Make Code | `php spark make:model`, `php spark make:controller`, `php spark make:migration`, `php spark make:request`, `php spark make:resource`, `php spark make:job` |
+| API Lookup | `php spark ember:lookup <term>` |
+
+## Critical Spark vs Laravel API Differences
+
+| Intent | Spark Contract | Laravel Habit to AVOID |
+| --- | --- | --- |
+| Validated input | Inject `Spark\Foundation\Http\FormRequest`. `$request->validated()` returns `Spark\Http\Input` (`ArrayAccess`, property access). | Expecting a plain array |
+| Validation factory | `Validator::make($rules, $data)` (**rules first**). | `make($data, $rules)` |
+| Model writes | `Model::create($input)` returns model; `$model->fill($input)->save()` returns `bool`. | Expecting `save()` to return model |
+| Model deletion | `$model->remove()` returns `bool`. Query builder `delete()` returns affected count. | `$model->delete()` (not instance API) |
+| Query collections | `get()` returns a Collection; `all()` returns a plain PHP array. | Expecting `all()` to return collection |
+| Pagination | `Spark\Paginator` (`paginate()`, `simplePaginate()`, `cursorPaginate()`). | `Illuminate\Pagination\*` |
+| Passwords | `Hash::password($pw)` / `Hash::verify($pw, $hash)`. | `Hash::make()` / `Hash::check()` |
+| Cache | `Cache::remember($key, fn() => ..., '+1 hour')` (**callback before TTL**). | `remember($key, $ttl, $cb)` |
+| Queues & Jobs | Implement `Spark\Queue\Contracts\JobInterface`, use `Spark\Queue\Dispatchable`. String IDs. | Closure jobs (unsupported) |
+| Date handling | `now()`, `carbon()`, `Spark\Carbon` follow app timezone. | Reformatting dates by hand |
+| Blade Loops | `@forelse(...) ... @empty ... @endforelse`, `@foreach`. Conditional `@break($cond)`, `@continue($cond)`. | `$loop` variable (unsupported: use `$index => $item`) |
+| Blade Components | Anonymous components in `resources/views/components/`. Named slots `<x-slot:name>` or `<x-slot name="...">`. | Class-based components, `@inject` |
+| Blade Directives | Native `@stack`, `@push`, `@prepend`, `@pushIf`, `@once`. Helpers in views (`user()`, `auth()`, `session()`, `route()`, `old()`, `errors()`). | `\Spark\Facades\*` directly in views |
+| Errors in Views | `Spark\Http\ErrorBag`: `$errors->has('field')`, `$errors->first('field')`, `$errors->all()`. | `ViewErrorBag` / `InputErrors` |
+
+## Coding & Architectural Conventions
+
+- Follow clean, focused code: 4-space indentation, explicit visibility, typed parameters and returns.
+- Keep controllers thin: validate via FormRequest, delegate heavy domain logic to services or model scopes, return explicit JSON resources or views.
+- Test changes with the narrowest check (`php test --filter=...`).
+- When looking up framework APIs, use `php spark ember:lookup <symbol>` or check `vendor/tinymvc/ember/resources/skills/`.
+</tinymvc-ember-guidelines>

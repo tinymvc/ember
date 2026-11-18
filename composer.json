@@ -1,0 +1,41 @@
+{
+    "name": "tinymvc/ember",
+    "version": "1.0.0",
+    "description": "Ember is an AI-powered development companion for TinyMVC/Spark that equips AI coding agents with framework-specific knowledge, skills, conventions, and workflows to help developers build smarter and faster.",
+    "type": "library",
+    "keywords": [
+        "ember",
+        "tinymvc",
+        "spark",
+        "php",
+        "framework",
+        "ai assistant",
+        "ai coding",
+        "framework skills",
+        "ai-powered development",
+        "tinymvc spark"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shahin Moyshan",
+            "email": "shahin.moyshan2@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "tinymvc/tinycore": "^4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Spark\\Ember\\": "src/"
+        }
+    },
+    "extra": {
+        "spark": {
+            "providers": [
+                "Spark\\Ember\\EmberServiceProvider"
+            ]
+        }
+    }
+}
