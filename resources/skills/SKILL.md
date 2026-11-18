@@ -25,7 +25,7 @@ Use Spark's native APIs and the application's conventions. Laravel is a style re
    php spark ember:lookup whenLoaded
    ```
 
-   `--file=Database/` narrows results. Read the matching body and follow parents, traits, and facade forwarding. No match does not prove an API is absent; see [API discovery](references/api-discovery.md).
+   `--file=Database/` narrows results; `--vendor=tinymvc/fireline-php` selects an installed integration's `src/`. Quote queries containing parentheses, such as `'isJs()'`. Read the matching body and follow parents, traits, and facade forwarding. No match does not prove an API is absent; see [API discovery](references/api-discovery.md).
 4. Implement only what the feature needs. Reuse native utilities and app patterns. FireLine/Inertia/Relay APIs belong to their installed packages; do not add a package, frontend, or abstraction just to fit an example.
 
 ## 3. Contracts that differ from Laravel

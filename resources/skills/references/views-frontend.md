@@ -9,7 +9,7 @@ Contents:
 - [Anonymous components](#anonymous-components)
 - [Escaping and client expressions](#escaping-and-client-expressions)
 - [Native directives](#native-directives)
-- [Unsupported features and native replacements](#unsupported-features-and-native-replacements)
+- [Named component slots and stacks](#named-component-slots-and-stacks)
 - [Helpers and forms](#helpers-and-forms)
 - [Layouts, rendering, and verification](#layouts-rendering-and-verification)
 

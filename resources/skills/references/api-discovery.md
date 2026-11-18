@@ -32,21 +32,23 @@ php spark ember:lookup upsert
 php spark ember:lookup transaction --file=Database/
 php spark ember:lookup whenLoaded
 php spark ember:lookup PendingDispatch --limit=40
+php spark ember:lookup 'isJs()' --vendor=tinymvc/fireline-php
 ```
 
 | Option | Effect |
 | --- | --- |
 | `--file=substring` | Narrow results to matching source paths |
 | `--limit=1..200` | Output cap (default 25 declarations, with signatures and absolute locations) |
-| `--source=/path/to/tinycore/src` | Explicitly select a checkout. The default is `vendor/tinymvc/tinycore/src` relative to the working directory, never an automatic sibling-checkout fallback |
+| `--vendor=vendor/package` | Search an installed Composer package's `src/` directory; defaults to `tinymvc/tinycore`. Composer install paths are honored |
+| `--source=/path/to/src` | Explicitly select a source directory for other layouts or checkout work; mutually exclusive with `--vendor`. No automatic sibling-checkout fallback |
 
-Exit codes: `0` matches or help, `1` no matching declaration, `2` invalid arguments or source path.
+Read the printed result or error message: the current Spark runner does not propagate command return values to shell exit codes.
 
-The dependency-free tool reads declarations without booting the app, requiring source files, connecting to services, or executing application code.
+Quote queries containing parentheses, such as `'isJs()'`. The Spark command boots the application and providers. Lookup then tokenizes source without requiring or executing the searched files.
 
 **Interpreting results**
 - Read the matching method body and its callers before relying on behavior. Follow trait imports, parent classes, `__call` / `__callStatic`, facade accessors, and application wrappers when a method is forwarded.
-- The tool lists declared public methods and selected protected extension points. It is not a resolved inheritance graph or a full PHP analyzer, and it does not enumerate constants, properties, docblock magic methods, runtime macros, or optional integration packages.
+- The tool lists declared functions, methods (including static and multiline signatures), classes, interfaces, traits, and enums. It is not a resolved inheritance graph or a full PHP analyzer, and it does not enumerate constants, properties, docblock magic methods, runtime macros.
 - No match does not prove an API is unavailable.
 
 **If PHP cannot run:** search with `rg -n 'function upsert' vendor/tinymvc/tinycore/src` (or `grep -rn`), then inspect the matching file and related traits. For the exact installed version use Composer lock/installed metadata; the `composer.json` constraint is not enough.

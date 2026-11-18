@@ -24,7 +24,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "tinymvc/tinycore": "^4.2"
+        "tinymvc/tinycore": "^4.3"
     },
     "autoload": {
         "psr-4": {
