@@ -1,6 +1,6 @@
 ---
 name: tinymvc-ember
-description: Implement, debug, review, and test TinyMVC applications built on TinyCore/Spark (namespace `Spark\`, `php spark` CLI) and TinyMVC Ember (`tinymvc/ember`). Use whenever a task touches Spark routes, controllers, models, FormRequest validation, API resources, Blade views, FireLine, Inertia, Relay, queues, cache, or migrations, even if the user never says "TinyMVC", and whenever a Laravel habit might be mistaken for a Spark API.
+description: Implement, debug, review, and test TinyMVC applications built on TinyCore/Spark. Use when working in a TinyMVC project on routes, controllers, validation, models, API resources, Blade views, queues, cache, migrations, or FireLine, Inertia, and Relay integrations. Verify Spark APIs instead of assuming Laravel compatibility.
 ---
 
 # TinyMVC Ember development
