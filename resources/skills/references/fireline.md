@@ -1,20 +1,21 @@
-# FireLine: Blade Navigation, Forms, and Partials
+# FireLine: Blade Navigation, Forms, Partials, and Reactive Components
 
-> **Read when:** setting up FireLine, writing page/form actions or partials, or debugging navigation.
+> **Read when:** setting up FireLine, writing page/form actions, partials, reactive components, or debugging navigation/419 errors.
 > **Related:** [Frontend setup](frontend-setup.md) (Vite) · [Blade views](views-frontend.md) (component syntax) · [Application patterns](application-patterns.md)
-> Describes the **FireLine 2.1** client with the `tinymvc/fireline-php` adapter. Verify the target app's Composer/npm locks and the adapter/client source before using version-specific features. FireLine is an Alpine plugin; it does **not** bundle Alpine.
+> Describes the **FireLine JS 2.1.3** client with the `tinymvc/fireline-php` adapter. Verify the target app's Composer/npm locks and the adapter/client source before using version-specific features. FireLine is an Alpine plugin; it does **not** bundle Alpine.
 
 Contents:
 
 - [Registration and client startup](#registration-and-client-startup)
 - [Full document versus page fragment](#full-document-versus-page-fragment)
 - [Forms and write responses](#forms-and-write-responses)
+- [Reactive components](#reactive-components)
 - [Partials, preloads, polling, and state](#partials-preloads-polling-and-state)
 - [Headers, deployment, and verification](#headers-deployment-and-verification)
 
 ## Registration and client startup
 
-For a requested new integration, add compatible `tinymvc/fireline-php`, `fireline`, and `alpinejs` packages (the 2.1 client documents Alpine 3.15+ within 3.x). Preserve the app's existing dependencies and providers.
+For a requested new integration, add compatible `tinymvc/fireline-php`, `fireline`, and `alpinejs` packages (the client needs Alpine 3.15+ within 3.x). Preserve the app's existing dependencies and providers.
 
 **Server**
 
@@ -23,7 +24,7 @@ For a requested new integration, add compatible `tinymvc/fireline-php`, `firelin
 - The provider supplies `Route::fire('/about', 'pages/about', $props)` for GET pages, plus `fire()` and `is_fire_js()`. A controller can return `fire('pages/about', $props)` or `Spark\Fire\Fire::render(...)`.
 - **Removed core APIs, do not use:** `fireline()`, `Router::fireline()`, `Request::isFirelineRequest()`.
 
-**Client**: register the plugin before the app's single Alpine startup.
+**Client**: register the plugin before the app's single Alpine startup. **Always set `csrfToken` globally**: reactive component requests do not serialize hidden `@csrf` fields, so without it every component sync/action fails with `419 Page Expired`.
 
 ```javascript
 import './app.css';
@@ -34,10 +35,19 @@ Alpine.plugin(FireLine);
 Object.assign(window.FireLine.settings, {
     targetEl: '#app > div',
     focusOnError: true,
+    csrfToken: document.querySelector('meta[name="_token"]')?.getAttribute('content'),
 });
 window.Alpine = Alpine;
 Alpine.start();
 ```
+
+The layout `<head>` must provide the token (use the app's meta name consistently in both places):
+
+```blade
+<meta name="_token" content="{{ csrf_token() }}">
+```
+
+`csrfToken` is sent as `X-CSRF-TOKEN` on every FireLine request (pages, forms, partials, components). Keep `@csrf` in forms too.
 
 ## Full document versus page fragment
 
@@ -115,10 +125,97 @@ public function store(StorePostRequest $request): Response
 **Rules**
 
 - `FireMiddleware` converts downstream Spark validation exceptions into the 422 envelope.
-- Keep `@csrf`. For PATCH/PUT/DELETE use POST plus `@method(...)`, or the client's supported request method. FireLine can send a configured server-generated CSRF token; it does not create one.
+- Keep `@csrf`. For PATCH/PUT/DELETE use POST plus `@method(...)`, or the client's supported request method. FireLine sends the configured `csrfToken`; it does not create one.
 - Navigation envelopes use HTTP 200 (their status argument applies to native redirects).
 - Success/error/validation helpers **always return JSON**, even without JavaScript. If native form fallback is required, branch on `is_fire_js()` and return a normal post/redirect/get response for native requests.
 - Never send raw HTML, 204/empty responses, or custom JSON shapes to a client expecting a FireLine envelope.
+
+## Reactive components
+
+Server-driven components: public PHP state + public action methods, synced over `POST /_fire/component`.
+
+**Create and mount**
+
+```sh
+php spark make:fire Counter          # app/Components/Counter.php + resources/views/components/counter.blade.php
+php spark make:fire Events/Discover  # app/Components/Events/Discover.php
+```
+
+```blade
+@reactive('events.discover', ['query' => ''])   {{-- dot path => App\Components\Events\Discover --}}
+@reactive(\App\Components\Counter::class, ['count' => 3])   {{-- class form also works --}}
+```
+
+PHP equivalents: `Fire::component(Counter::class, $props)` / `fire_component(...)` return an HTML string.
+
+**Component class**
+
+```php
+namespace App\Components\Events;
+
+use Spark\Fire\Component;
+
+class Discover extends Component
+{
+    public string $query = '';
+    public array $filters = ['category' => ''];   // initialize every public property
+    public int $page = 1;
+
+    protected function view(): string
+    {
+        return 'components.events.discover';
+    }
+
+    public function search(): void
+    {
+        $this->validate(['query' => 'max:100']);
+        $this->page = 1;
+    }
+}
+```
+
+- State = initialized, public, non-static, non-readonly properties not starting with `_`. Keep it JSON-compatible: no models, services, files, or secrets.
+- Template receives public state, `$component`, and `$errors` (`$errors->first('query')`). Escape values with `{{ }}`.
+- Optional hooks: `boot()`, `mount(...$props)`, `hydrate()`, `dehydrate()`, `updatingX/updatedX`. `boot()` runs *before* state is restored; use `hydrate()` or the action for restored-state checks.
+- Remote effects: `$this->dispatch('name', ...$params)`, `$this->navigate($url)`, `$this->redirect($url)`; map browser events with `protected array $listeners = ['event' => 'action'];`.
+
+**View (no `x-data` on the wrapper, the adapter generates it)**
+
+```blade
+<div>
+    <input fire:model.debounce.400ms="query" placeholder="Search">
+    <select x-model="state.filters.category" @change="$fire.search()">...</select>
+    <p>{{ $errors->first('query') }}</p>
+
+    <button type="button" fire:click="search" fire:loading.attr="disabled" fire:target="search">Search</button>
+    <span fire:loading fire:target="search">Loading…</span>
+
+    @foreach ($events as $event)
+        <article fire:key="event-{{ $event['id'] }}">{{ $event['title'] }}</article>
+    @endforeach
+</div>
+```
+
+| Binding | Use |
+| --- | --- |
+| `fire:model="prop"` | Two-way bind a **top-level** public property (250 ms debounce). `.debounce.500ms`, `.lazy`/`.change`, `.number`, `.trim` |
+| `fire:click="action(args)"` | Call a public action; positional JS-expression args; `.prevent`, `.stop` |
+| `fire:submit="action"` | Form submit action (always prevents native submit; never combine with `x-form`/`x-submit`) |
+| `fire:loading` (`.remove`, `.attr="x"`, `.class="x"`, `.delay.300ms`) + `fire:target="action"` | Busy indicators |
+| `fire:poll.5s="action"` | Poll; no expression = refresh |
+| `fire:key="id"` | Stable literal key for list reconciliation |
+
+JS inside a component: `$fire.prop`, `$fire.set('p', v)`, `await $fire.action(...)`, `$fire.call('action')`, `$fire.send()`. Nested data: `x-model="state.filters.query"` (PHP property must be pre-initialized with those keys). Avoid prop names like `call`, `get`, `set`, `send`. Inside a component `$fire` is the component; use `FireLine.context` for page navigation.
+
+**Rules**
+
+- Public state and action args are browser-editable: **validate and authorize inside every action**, not just `mount()`. Keep auth + CSRF middleware on `/_fire/component`.
+- Validation returns HTTP 200 with the `errors` bag and re-rendered HTML (not 422). Failure in an update hook skips the action.
+- Requests per component are serialized; local edits made mid-request sync afterward.
+- Component requests skip page callbacks and global `fireStart`/`fireEnd`/progress bar; failures emit `fireError`.
+- **No file uploads**: `fire:model` ignores `input[type=file]`. Use a `native` form or a separate upload endpoint, then store only an app-owned identifier in state (verify ownership).
+- Nested components can remount when the parent re-renders; mount stateful ones as siblings.
+- **419 errors**: `csrfToken` not set globally (see startup) or the `_token` meta tag is missing from the layout.
 
 ## Partials, preloads, polling, and state
 
@@ -149,7 +246,8 @@ JS API: `$fire.navigate(url)`, `$fire.reload()`, `$fire.replaceHtml(html)` are a
 
 1. Direct HTML load, client navigation, back/forward.
 2. Successful write, invalid input (422 field arrays), CSRF rejection, auth failure.
-3. For partials/preloads/versioning: cleanup, matching fragment roots, asset-mismatch behavior.
-4. Rebuild changed frontend assets.
+3. Reactive component: `fire:model` sync and an action both succeed (no 419), validation errors render, loading indicators toggle.
+4. For partials/preloads/versioning: cleanup, matching fragment roots, asset-mismatch behavior.
+5. Rebuild changed frontend assets.
 
 For exact behavior inspect the installed adapter (`src/FireService.php`, `FireMiddleware.php`, `FireHeaders.php`) and client package. Do not assume v1 APIs still exist.
