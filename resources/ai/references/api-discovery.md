@@ -16,9 +16,9 @@ Contents:
 Use the topic links in `SKILL.md`, or search the installed references with focused terms:
 
 ```bash
-rg -n -i 'cursor|pagination' vendor/tinymvc/ember/resources/skills/references
+rg -n -i 'cursor|pagination' vendor/tinymvc/ember/resources/ai/references
 # without ripgrep:
-grep -rniE 'cursor|pagination' vendor/tinymvc/ember/resources/skills/references
+grep -rniE 'cursor|pagination' vendor/tinymvc/ember/resources/ai/references
 ```
 
 Read the relevant section, then look up uncertain declarations. Do not load the whole reference directory or dump every source method.

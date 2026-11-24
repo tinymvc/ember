@@ -11,7 +11,7 @@ Use Spark's native APIs and the application's conventions. Laravel is a style re
 
 - `tinymvc/spark` is the root framework (`Spark\` namespace, facades, `php spark` CLI). `tinymvc/tinycore` is its runtime engine; `tinymvc/skeleton` is the application boilerplate.
 - `tinymvc/ember` is the AI-powered development companion providing framework skills, conventions, and workflows.
-- **Application work:** use `vendor/tinymvc/ember/resources/skills` and `vendor/tinymvc/tinycore/src`. Vendor files are reference only; a sibling checkout may contain unreleased APIs.
+- **Application work:** use `vendor/tinymvc/ember/resources/ai` and `vendor/tinymvc/tinycore/src`. Vendor files are reference only; a sibling checkout may contain unreleased APIs.
 - **Explicit core work:** use the target checkout's skill and `src/`, run `php tests/run.php`, and update this skill when public API or behavior changes.
 - An application's `.agents/skills/tinymvc-ember/SKILL.md` is the discovery entrypoint: framework guidance lives in `tinymvc/ember`, application conventions live in the app's `AGENTS.md`.
 
